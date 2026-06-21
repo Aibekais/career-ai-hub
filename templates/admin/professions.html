@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Мамандықтар{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Әкімші</h3>
+    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('admin_users') }}" class="sidebar-link">Пайдаланушылар</a>
+    <a href="{{ url_for('admin_professions') }}" class="sidebar-link active">Мамандықтар</a>
+    <a href="{{ url_for('admin_logs') }}" class="sidebar-link">Жүйелік журнал</a>
+  </aside>
+  <div class="dashboard-main">
+    <div class="page-header-row">
+      <h1>Мамандықтар (CRUD)</h1>
+      <a href="{{ url_for('admin_profession_create') }}" class="btn btn-primary">+ Қосу</a>
+    </div>
+    <form class="search-bar" method="GET">
+      <input type="text" name="q" value="{{ q }}" placeholder="Іздеу...">
+      <button type="submit" class="btn btn-outline">Іздеу</button>
+    </form>
+    <table class="table">
+      <thead><tr><th>Атау</th><th>Сала</th><th>Жалақы</th><th>Жарияланған</th><th>Әрекет</th></tr></thead>
+      <tbody>
+        {% for p in professions %}
+        <tr>
+          <td>{{ p.title }}</td>
+          <td>{{ p.category }}</td>
+          <td>{{ "{:,}".format(p.salary_min) }} – {{ "{:,}".format(p.salary_max) }} ₸</td>
+          <td>{% if p.is_published %}✅{% else %}❌{% endif %}</td>
+          <td>
+            <a href="{{ url_for('admin_profession_edit', pid=p.id) }}" class="btn btn-sm btn-outline">Өзгерту</a>
+            <form method="POST" action="{{ url_for('admin_profession_delete', pid=p.id) }}" class="inline-form" onsubmit="return confirm('Жою?')">
+              <button type="submit" class="btn btn-sm btn-danger">Жою</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

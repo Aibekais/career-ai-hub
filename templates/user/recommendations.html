@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Менің ұсыныстарым{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Менің AI ұсыныстарым</h1>
+  <a href="{{ url_for('recommend') }}" class="btn btn-primary">+ Жаңа ұсыныс</a>
+</div>
+<div class="card-grid">
+  {% for r in recommendations %}
+  <div class="card">
+    <div class="match-score">{{ r.match_score }}%</div>
+    <h3>{{ r.profession.title }}</h3>
+    <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+    <p>{{ r.ai_summary }}</p>
+    <p class="text-muted">{{ r.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+  </div>
+  {% else %}
+  <p class="empty-msg">Ұсыныс жоқ. <a href="{{ url_for('recommend') }}">AI ұсыныс алу</a></p>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Қызметкер панелі{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Қызметкер</h3>
+    <a href="{{ url_for('employee_dashboard') }}" class="sidebar-link active">Менің тапсырмаларым</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Менің тапсырмаларым</h1>
+    <p class="text-muted">Сізге бекітілген жұмыстар ғана көрсетіледі.</p>
+    {% if tasks %}
+    <div class="card-grid">
+      {% for t in tasks %}
+      <div class="card">
+        <span class="badge badge-{{ t.status }}">{{ t.status }}</span>
+        <h3>{{ t.title }}</h3>
+        <p>{{ t.description }}</p>
+        <p class="text-muted">Мерзім: {{ t.due_date or '—' }}</p>
+        <a href="{{ url_for('employee_task_detail', tid=t.id) }}" class="btn btn-sm btn-primary">Ашу</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-msg">Тапсырма жоқ.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

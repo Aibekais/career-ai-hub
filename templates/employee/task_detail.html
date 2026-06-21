@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Тапсырма #{{ task.id }}{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Қызметкер</h3>
+    <a href="{{ url_for('employee_dashboard') }}" class="sidebar-link active">← Артқа</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>{{ task.title }}</h1>
+    <div class="panel">
+      <p>{{ task.description }}</p>
+      <p><strong>Статус:</strong> {{ task.status }}</p>
+    </div>
+    <form method="POST" class="form">
+      <div class="form-group">
+        <label>Статус жаңарту</label>
+        <select name="status">
+          {% for s in ['assigned','in_progress','completed'] %}
+          <option value="{{ s }}" {% if task.status == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Сақтау</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

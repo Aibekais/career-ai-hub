@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Жүйелік журнал{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Әкімші</h3>
+    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('admin_users') }}" class="sidebar-link">Пайдаланушылар</a>
+    <a href="{{ url_for('admin_professions') }}" class="sidebar-link">Мамандықтар</a>
+    <a href="{{ url_for('admin_logs') }}" class="sidebar-link active">Жүйелік журнал</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Жүйелік журнал</h1>
+    <table class="table">
+      <thead><tr><th>ID</th><th>Уақыт</th><th>Пайдаланушы</th><th>Әрекет</th><th>Толығырақ</th></tr></thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>{{ log.id }}</td>
+          <td>{{ log.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+          <td>{{ log.user.full_name if log.user else '—' }}</td>
+          <td>{{ log.action }}</td>
+          <td>{{ log.details }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

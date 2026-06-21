@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Кіру{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>Жүйеге кіру</h1>
+    <p class="auth-sub">CareerAI Hub аккаунтыңызға кіріңіз</p>
+    <form method="POST" class="form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required placeholder="user@careerhub.kz">
+      </div>
+      <div class="form-group">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Кіру</button>
+    </form>
+    <p class="auth-footer">Аккаунтыңыз жоқ па? <a href="{{ url_for('register') }}">Тіркелу</a></p>
+    <div class="demo-box">
+      <strong>Demo аккаунттар:</strong>
+      <ul>
+        <li>admin@careerhub.kz / admin123</li>
+        <li>manager@careerhub.kz / manager123</li>
+        <li>employee@careerhub.kz / employee123</li>
+        <li>moderator@careerhub.kz / moderator123</li>
+        <li>user@careerhub.kz / user123</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

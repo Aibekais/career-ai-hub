@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}404 — Табылмады{% endblock %}
+{% block content %}
+<div class="error-page">
+  <h1>404</h1>
+  <p>Бет табылмады.</p>
+  <a href="{{ url_for('index') }}" class="btn btn-primary">Басты бетке</a>
+</div>
+{% endblock %}

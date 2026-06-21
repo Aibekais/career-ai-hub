@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Өтінімдер{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Менеджер</h3>
+    <a href="{{ url_for('manager_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('manager_requests') }}" class="sidebar-link active">Барлық өтінімдер</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Консультация өтінімдері</h1>
+    <form class="search-bar" method="GET">
+      <input type="text" name="q" value="{{ q }}" placeholder="Тақырып бойынша іздеу...">
+      <select name="status">
+        <option value="">Барлығы</option>
+        {% for s in ['new','in_progress','done','cancelled'] %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-outline">Сүзгілеу</button>
+    </form>
+    <table class="table">
+      <thead><tr><th>#</th><th>Клиент</th><th>Тақырып</th><th>Статус</th><th>Күні</th><th></th></tr></thead>
+      <tbody>
+        {% for r in requests %}
+        <tr>
+          <td>{{ r.id }}</td>
+          <td>{{ r.client.full_name }}</td>
+          <td>{{ r.subject }}</td>
+          <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+          <td>{{ r.created_at.strftime('%d.%m.%Y') }}</td>
+          <td><a href="{{ url_for('manager_request_detail', rid=r.id) }}" class="btn btn-sm btn-primary">Өңдеу</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

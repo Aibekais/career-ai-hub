@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Пайдаланушылар{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Әкімші</h3>
+    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('admin_users') }}" class="sidebar-link active">Пайдаланушылар</a>
+    <a href="{{ url_for('admin_professions') }}" class="sidebar-link">Мамандықтар</a>
+    <a href="{{ url_for('admin_logs') }}" class="sidebar-link">Жүйелік журнал</a>
+  </aside>
+  <div class="dashboard-main">
+    <div class="page-header-row">
+      <h1>Пайдаланушылар</h1>
+      <a href="{{ url_for('admin_user_create') }}" class="btn btn-primary">+ Қосу</a>
+    </div>
+    <form class="search-bar" method="GET">
+      <input type="text" name="q" value="{{ q }}" placeholder="Іздеу...">
+      <select name="role">
+        <option value="">Барлық рөлдер</option>
+        {% for r in ['admin','manager','employee','moderator','user'] %}
+        <option value="{{ r }}" {% if role_filter == r %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-outline">Сүзгілеу</button>
+    </form>
+    <table class="table">
+      <thead><tr><th>Аты</th><th>Email</th><th>Рөл</th><th>Статус</th><th>Әрекет</th></tr></thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.full_name }}</td>
+          <td>{{ u.email }}</td>
+          <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+          <td>{% if u.is_active %}✅{% else %}❌{% endif %}</td>
+          <td>
+            <a href="{{ url_for('admin_user_edit', user_id=u.id) }}" class="btn btn-sm btn-outline">Өзгерту</a>
+            {% if u.id != current_user.id %}
+            <form method="POST" action="{{ url_for('admin_user_delete', user_id=u.id) }}" class="inline-form" onsubmit="return confirm('Жою?')">
+              <button type="submit" class="btn btn-sm btn-danger">Жою</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

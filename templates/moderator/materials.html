@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Материалдар{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Модератор</h3>
+    <a href="{{ url_for('moderator_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('moderator_materials') }}" class="sidebar-link active">Материалдар</a>
+    <a href="{{ url_for('moderator_recommendations') }}" class="sidebar-link">AI ұсыныстар</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Жарияланған материалдар</h1>
+    <form class="search-bar" method="GET">
+      <select name="status">
+        {% for s in ['pending','approved','rejected'] %}
+        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-outline">Сүзгілеу</button>
+    </form>
+    {% for m in materials %}
+    <div class="review-item panel">
+      <h3>{{ m.title }}</h3>
+      <p>{{ m.content }}</p>
+      <p class="text-muted">Автор: {{ m.author.full_name }} | {{ m.created_at.strftime('%d.%m.%Y') }}</p>
+      {% if m.status == 'pending' %}
+      <form method="POST" action="{{ url_for('moderator_material_review', mid=m.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="approved">
+        <button type="submit" class="btn btn-sm btn-primary">Мақұлдау</button>
+      </form>
+      <form method="POST" action="{{ url_for('moderator_material_review', mid=m.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="rejected">
+        <button type="submit" class="btn btn-sm btn-danger">Қабылдамау</button>
+      </form>
+      {% else %}
+      <span class="badge badge-{{ m.status }}">{{ m.status }}</span>
+      {% endif %}
+    </div>
+    {% else %}
+    <p class="empty-msg">Материал жоқ.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

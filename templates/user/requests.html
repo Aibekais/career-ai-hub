@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Менің өтінімдерім{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Менің өтінімдерім</h1>
+  <a href="{{ url_for('request_consultation') }}" class="btn btn-primary">+ Жаңа өтінім</a>
+</div>
+<table class="table">
+  <thead><tr><th>#</th><th>Тақырып</th><th>Статус</th><th>Күні</th></tr></thead>
+  <tbody>
+    {% for r in requests %}
+    <tr>
+      <td>{{ r.id }}</td>
+      <td>{{ r.subject }}</td>
+      <td><span class="badge badge-{{ r.status }}">{{ r.status }}</span></td>
+      <td>{{ r.created_at.strftime('%d.%m.%Y') }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" class="empty-msg">Өтінім жоқ.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

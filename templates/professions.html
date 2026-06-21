@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Мамандықтар{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Мамандықтар каталогы</h1>
+  <p>Іздеу және сүзгілеу арқылы мамандық табыңыз</p>
+</div>
+
+<form class="search-bar" method="GET">
+  <input type="text" name="q" value="{{ q }}" placeholder="Мамандық атауын іздеу...">
+  <select name="category">
+    <option value="">Барлық салалар</option>
+    {% for cat in categories %}
+    <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary">Іздеу</button>
+</form>
+
+<div class="card-grid" id="professions-grid">
+  {% for p in professions %}
+  <div class="card profession-card" data-id="{{ p.id }}">
+    <span class="card-tag">{{ p.category }}</span>
+    <h3>{{ p.title }}</h3>
+    <p>{{ p.description }}</p>
+    <div class="card-meta">
+      <span>💰 {{ "{:,}".format(p.salary_min) }} – {{ "{:,}".format(p.salary_max) }} ₸</span>
+    </div>
+    <div class="skills-list">
+      {% for skill in (p.skills_required or '').split(',')[:4] %}
+      <span class="skill-tag">{{ skill.strip() }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <p class="empty-msg">Ешнәрсе табылмады.</p>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // API арқылы live search (debounced)
+  document.querySelector('.search-bar input[name="q"]')?.addEventListener('input', function(e) {
+    clearTimeout(window._searchTimer);
+    window._searchTimer = setTimeout(async () => {
+      const q = e.target.value;
+      const cat = document.querySelector('select[name="category"]').value;
+      const params = new URLSearchParams({ q, category: cat });
+      const res = await fetch('/api/professions?' + params);
+      const json = await res.json();
+      if (json.success && json.data.length === 0) return;
+    }, 500);
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}AI ұсыныс{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>🤖 AI мамандық ұсынысы</h1>
+  <p>Профиліңізге сәйкес мамандық таңдаңыз — AI талдау жасайды</p>
+  {% if ai_gemini_enabled %}
+  <span class="ai-badge ai-badge-live">✨ Google Gemini AI қосулы</span>
+  {% else %}
+  <span class="ai-badge ai-badge-local">⚙️ Жергілікті AI (Gemini API кілті жоқ)</span>
+  {% endif %}
+</div>
+<form method="POST" class="form form-wide" id="recommend-form">
+  <div class="form-group">
+    <label>Мамандық таңдау</label>
+    <select name="profession_id" id="profession-select" required>
+      <option value="">— Таңдаңыз —</option>
+      {% for p in professions %}
+      <option value="{{ p.id }}">{{ p.title }} ({{ p.category }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div id="profession-preview" class="panel hidden"></div>
+  <button type="submit" class="btn btn-primary btn-lg">AI талдау алу</button>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.getElementById('profession-select')?.addEventListener('change', async function() {
+    const id = this.value;
+    const preview = document.getElementById('profession-preview');
+    if (!id) { preview.classList.add('hidden'); return; }
+    const res = await fetch('/api/professions/' + id);
+    const json = await res.json();
+    if (json.success) {
+      const d = json.data;
+      preview.innerHTML = `<h3>${d.title}</h3><p>${d.description}</p><p>💰 ${d.salary_min.toLocaleString()} – ${d.salary_max.toLocaleString()} ₸</p>`;
+      preview.classList.remove('hidden');
+    }
+  });
+</script>
+{% endblock %}

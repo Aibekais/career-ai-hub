@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Клиент кабинеті{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Клиент</h3>
+    <a href="{{ url_for('user_dashboard') }}" class="sidebar-link active">Басты</a>
+    <a href="{{ url_for('profile') }}" class="sidebar-link">Профиль</a>
+    <a href="{{ url_for('ai_chat') }}" class="sidebar-link">💬 AI Чат</a>
+    <a href="{{ url_for('recommend') }}" class="sidebar-link">AI ұсыныс</a>
+    <a href="{{ url_for('user_recommendations') }}" class="sidebar-link">Менің ұсыныстарым</a>
+    <a href="{{ url_for('request_consultation') }}" class="sidebar-link">Консультация</a>
+    <a href="{{ url_for('user_requests') }}" class="sidebar-link">Менің өтінімдерім</a>
+    <a href="{{ url_for('user_material_new') }}" class="sidebar-link">Материал жариялау</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Сәлем, {{ current_user.full_name }}!</h1>
+    <div class="hero-actions mb-2">
+      <a href="{{ url_for('recommend') }}" class="btn btn-primary">🤖 AI мамандық ұсынысы</a>
+      <a href="{{ url_for('ai_chat') }}" class="btn btn-primary">💬 AI Чат</a>
+      <a href="{{ url_for('request_consultation') }}" class="btn btn-outline">Консультация сұрау</a>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card-lg"><span class="stat-num">{{ recommendations|length }}</span><span>Ұсыныстар</span></div>
+      <div class="stat-card-lg"><span class="stat-num">{{ requests|length }}</span><span>Өтінімдер</span></div>
+    </div>
+    {% if profile %}
+    <div class="panel">
+      <h2>Профиль қысқаша</h2>
+      <p><strong>Дағдылар:</strong> {{ profile.skills or '—' }}</p>
+      <p><strong>Қызығушылық:</strong> {{ profile.interests or '—' }}</p>
+      <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline">Профильді толықтыру</a>
+    </div>
+    {% endif %}
+    <div class="panel">
+      <h2>Соңғы AI ұсыныстар</h2>
+      {% for r in recommendations %}
+      <div class="rec-item">
+        <strong>{{ r.profession.title }}</strong> — {{ r.match_score }}%
+        <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+        <p>{{ r.ai_summary[:120] }}...</p>
+      </div>
+      {% else %}
+      <p class="empty-msg">AI ұсыныс алу үшін <a href="{{ url_for('recommend') }}">мамандық таңдаңыз</a>.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

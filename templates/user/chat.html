@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}AI Чат{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Клиент</h3>
+    <a href="{{ url_for('user_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('profile') }}" class="sidebar-link">Профиль</a>
+    <a href="{{ url_for('ai_chat') }}" class="sidebar-link active">💬 AI Чат</a>
+    <a href="{{ url_for('recommend') }}" class="sidebar-link">AI ұсыныс</a>
+    <a href="{{ url_for('user_recommendations') }}" class="sidebar-link">Менің ұсыныстарым</a>
+    <a href="{{ url_for('request_consultation') }}" class="sidebar-link">Консультация</a>
+  </aside>
+  <div class="dashboard-main chat-page">
+    <div class="chat-header">
+      <div>
+        <h1>💬 AI Чат</h1>
+        <p class="text-muted">Кез келген сұрақ қойыңыз — мамандық, білім, технология, өмір...</p>
+      </div>
+      <div class="chat-header-actions">
+        {% if ai_gemini_enabled %}
+        <span class="ai-badge ai-badge-live">Gemini AI</span>
+        {% else %}
+        <span class="ai-badge ai-badge-local">Жергілікті AI</span>
+        {% endif %}
+        <button type="button" id="clear-chat" class="btn btn-outline btn-sm">Тазалау</button>
+      </div>
+    </div>
+
+    <div class="chat-box" id="chat-box">
+      <div class="chat-welcome" id="chat-welcome">
+        <div class="chat-welcome-icon">🤖</div>
+        <h3>Сәлем! Мен CareerAI Assistant</h3>
+        <p>Кез келген сұрақ қойыңыз — мен еркін жауап беремін.</p>
+        <div class="chat-suggestions">
+          <button type="button" class="chat-suggestion" data-msg="IT саласында қандай мамандық таңдауға болады?">IT мамандықтар</button>
+          <button type="button" class="chat-suggestion" data-msg="Python тілін қалай үйренуге болады?">Python үйрену</button>
+          <button type="button" class="chat-suggestion" data-msg="Қазақстан тарихы туралы қысқаша айтып бер">Қазақстан тарихы</button>
+          <button type="button" class="chat-suggestion" data-msg="Денсаулықты сақтау кеңестері">Денсаулық кеңесі</button>
+        </div>
+      </div>
+      {% for m in messages %}
+      <div class="chat-msg chat-msg-{{ m.role }}" data-id="{{ m.id }}">
+        <div class="chat-avatar">{% if m.role == 'user' %}👤{% else %}🤖{% endif %}</div>
+        <div class="chat-bubble">
+          <p>{{ m.content }}</p>
+          {% if m.role == 'assistant' and m.source %}
+          <span class="chat-source">{{ m.source }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <form class="chat-input-form" id="chat-form">
+      <input type="text" id="chat-input" placeholder="Сұрағыңызды жазыңыз..." autocomplete="off" maxlength="2000">
+      <button type="submit" class="btn btn-primary" id="chat-send">Жіберу</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  const box = document.getElementById('chat-box');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const welcome = document.getElementById('chat-welcome');
+  const sendBtn = document.getElementById('chat-send');
+
+  function scrollBottom() {
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function hideWelcome() {
+    if (welcome) welcome.style.display = 'none';
+  }
+
+  function addMessage(role, content, source) {
+    hideWelcome();
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-' + role;
+    const avatar = role === 'user' ? '👤' : '🤖';
+    let sourceTag = (role === 'assistant' && source)
+      ? `<span class="chat-source">${source}</span>` : '';
+    div.innerHTML = `
+      <div class="chat-avatar">${avatar}</div>
+      <div class="chat-bubble"><p>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</p>${sourceTag}</div>`;
+    box.appendChild(div);
+    scrollBottom();
+  }
+
+  function addTyping() {
+    const div = document.createElement('div');
+    div.className = 'chat-msg chat-msg-assistant chat-typing';
+    div.id = 'typing-indicator';
+    div.innerHTML = '<div class="chat-avatar">🤖</div><div class="chat-bubble"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>';
+    box.appendChild(div);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    document.getElementById('typing-indicator')?.remove();
+  }
+
+  async function sendMessage(text) {
+    if (!text.trim()) return;
+    hideWelcome();
+    addMessage('user', text);
+    input.value = '';
+    sendBtn.disabled = true;
+    addTyping();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      const json = await res.json();
+      removeTyping();
+      if (json.success) {
+        addMessage('assistant', json.data.ai_message.content, json.data.ai_message.source);
+      } else {
+        addMessage('assistant', json.error || 'Қате орын алды', 'error');
+      }
+    } catch (e) {
+      removeTyping();
+      addMessage('assistant', 'Байланыс қатесі. Қайта көріңіз.', 'error');
+    }
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    sendMessage(input.value);
+  });
+
+  document.querySelectorAll('.chat-suggestion').forEach(btn => {
+    btn.addEventListener('click', () => sendMessage(btn.dataset.msg));
+  });
+
+  document.getElementById('clear-chat')?.addEventListener('click', async () => {
+    if (!confirm('Чат тарихын тазалау?')) return;
+    await fetch('/api/chat/clear', { method: 'POST' });
+    box.querySelectorAll('.chat-msg').forEach(el => el.remove());
+    if (welcome) welcome.style.display = 'block';
+  });
+
+  if (box.querySelectorAll('.chat-msg').length) hideWelcome();
+  scrollBottom();
+})();
+</script>
+{% endblock %}

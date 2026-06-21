@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Модератор панелі{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Модератор</h3>
+    <a href="{{ url_for('moderator_dashboard') }}" class="sidebar-link active">Басты</a>
+    <a href="{{ url_for('moderator_materials') }}" class="sidebar-link">Материалдар</a>
+    <a href="{{ url_for('moderator_recommendations') }}" class="sidebar-link">AI ұсыныстар</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Модератор панелі</h1>
+    <div class="stats-grid">
+      <div class="stat-card-lg"><span class="stat-num">{{ materials|length }}</span><span>Күтудегі материал</span></div>
+      <div class="stat-card-lg"><span class="stat-num">{{ recommendations|length }}</span><span>Күтудегі AI ұсыныс</span></div>
+    </div>
+    <div class="panel">
+      <h2>Тексеруді күтуде</h2>
+      {% for m in materials %}
+      <div class="review-item">
+        <h4>{{ m.title }}</h4>
+        <p>{{ m.content[:150] }}...</p>
+        <form method="POST" action="{{ url_for('moderator_material_review', mid=m.id) }}" class="inline-form">
+          <input type="hidden" name="status" value="approved">
+          <button type="submit" class="btn btn-sm btn-primary">Мақұлдау</button>
+        </form>
+        <form method="POST" action="{{ url_for('moderator_material_review', mid=m.id) }}" class="inline-form">
+          <input type="hidden" name="status" value="rejected">
+          <button type="submit" class="btn btn-sm btn-danger">Қабылдамау</button>
+        </form>
+      </div>
+      {% else %}
+      <p class="empty-msg">Күтуде ешнәрсе жоқ.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

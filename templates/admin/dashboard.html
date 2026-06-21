@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Әкімші панелі{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Әкімші</h3>
+    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link active">Басты</a>
+    <a href="{{ url_for('admin_users') }}" class="sidebar-link">Пайдаланушылар</a>
+    <a href="{{ url_for('admin_professions') }}" class="sidebar-link">Мамандықтар</a>
+    <a href="{{ url_for('admin_logs') }}" class="sidebar-link">Жүйелік журнал</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>Әкімші панелі</h1>
+    <div class="stats-grid">
+      <div class="stat-card-lg"><span class="stat-num">{{ stats.users }}</span><span>Пайдаланушылар</span></div>
+      <div class="stat-card-lg"><span class="stat-num">{{ stats.professions }}</span><span>Мамандықтар</span></div>
+      <div class="stat-card-lg"><span class="stat-num">{{ stats.requests }}</span><span>Өтінімдер</span></div>
+      <div class="stat-card-lg"><span class="stat-num">{{ stats.materials }}</span><span>Күтуде (материал)</span></div>
+    </div>
+    <div class="panel">
+      <h2>Соңғы әрекеттер</h2>
+      <table class="table">
+        <thead><tr><th>Уақыт</th><th>Әрекет</th><th>Толығырақ</th></tr></thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.details }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

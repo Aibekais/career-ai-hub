@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}AI ұсыныстар{% endblock %}
+{% block content %}
+<div class="dashboard">
+  <aside class="sidebar">
+    <h3>Модератор</h3>
+    <a href="{{ url_for('moderator_dashboard') }}" class="sidebar-link">Басты</a>
+    <a href="{{ url_for('moderator_materials') }}" class="sidebar-link">Материалдар</a>
+    <a href="{{ url_for('moderator_recommendations') }}" class="sidebar-link active">AI ұсыныстар</a>
+  </aside>
+  <div class="dashboard-main">
+    <h1>AI ұсыныстарды тексеру</h1>
+    {% for r in recommendations %}
+    <div class="review-item panel">
+      <h3>{{ r.profession.title }} — {{ r.match_score }}%</h3>
+      <p>{{ r.ai_summary }}</p>
+      <p class="text-muted">Пайдаланушы: {{ r.user.full_name }}</p>
+      <form method="POST" action="{{ url_for('moderator_rec_review', rid=r.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="approved">
+        <button type="submit" class="btn btn-sm btn-primary">Мақұлдау</button>
+      </form>
+      <form method="POST" action="{{ url_for('moderator_rec_review', rid=r.id) }}" class="inline-form">
+        <input type="hidden" name="status" value="rejected">
+        <button type="submit" class="btn btn-sm btn-danger">Қабылдамау</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="empty-msg">Күтуде ұсыныс жоқ.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

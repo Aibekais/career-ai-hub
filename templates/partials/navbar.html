@@ -1,0 +1,32 @@
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      <span class="brand-icon">🎯</span>
+      <span>CareerAI Hub</span>
+    </a>
+    <button class="nav-toggle" aria-label="Мәзір">☰</button>
+    <ul class="nav-links">
+      <li><a href="{{ url_for('index') }}">Басты бет</a></li>
+      <li><a href="{{ url_for('professions_list') }}">Мамандықтар</a></li>
+      {% if current_user.is_authenticated %}
+        {% if current_user.role == 'admin' %}
+          <li><a href="{{ url_for('admin_dashboard') }}">Әкімші панелі</a></li>
+        {% elif current_user.role == 'manager' %}
+          <li><a href="{{ url_for('manager_dashboard') }}">Менеджер панелі</a></li>
+        {% elif current_user.role == 'employee' %}
+          <li><a href="{{ url_for('employee_dashboard') }}">Қызметкер панелі</a></li>
+        {% elif current_user.role == 'moderator' %}
+          <li><a href="{{ url_for('moderator_dashboard') }}">Модератор панелі</a></li>
+        {% else %}
+          <li><a href="{{ url_for('user_dashboard') }}">Кабинет</a></li>
+          <li><a href="{{ url_for('ai_chat') }}">💬 AI Чат</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('profile') }}">Профиль</a></li>
+        <li><a href="{{ url_for('logout') }}" class="btn btn-outline btn-sm">Шығу</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}">Кіру</a></li>
+        <li><a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">Тіркелу</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
