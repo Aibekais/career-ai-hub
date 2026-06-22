@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Хабарламалар{% endblock %}
+{% block content %}
+<div class="page-header page-header-row">
+  <div>
+    <h1>💬 Хабарламалар</h1>
+    <p class="text-muted">Пайдаланушылармен жеке чат</p>
+  </div>
+  <a href="{{ url_for('messages_users') }}" class="btn btn-primary">+ Жаңа чат</a>
+</div>
+
+{% if unread_total > 0 %}
+<p class="unread-banner">📩 Оқылмаған хабарлама: {{ unread_total }}</p>
+{% endif %}
+
+<div class="inbox-list">
+  {% for conv in conversations %}
+  <a href="{{ url_for('messages_chat', partner_id=conv.partner.id) }}" class="inbox-item">
+    <div class="inbox-avatar">{{ conv.partner.full_name[0] }}</div>
+    <div class="inbox-body">
+      <div class="inbox-top">
+        <strong>{{ conv.partner.full_name }}</strong>
+        <span class="badge badge-{{ conv.partner.role }}">{{ role_labels.get(conv.partner.role, conv.partner.role) }}</span>
+        {% if conv.unread %}<span class="unread-dot">{{ conv.unread }}</span>{% endif %}
+      </div>
+      <p class="inbox-preview">
+        {% if conv.last_message.sender_id == current_user.id %}Сіз: {% endif %}
+        {{ conv.last_message.content[:80] }}{% if conv.last_message.content|length > 80 %}...{% endif %}
+      </p>
+      <span class="inbox-time">{{ conv.last_message.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+    </div>
+  </a>
+  {% else %}
+  <div class="empty-msg panel">
+    <p>Әлі хабарлама жоқ.</p>
+    <a href="{{ url_for('messages_users') }}" class="btn btn-primary">Пайдаланушы тауып чат бастау</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

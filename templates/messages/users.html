@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Жаңа чат{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Пайдаланушы таңдау</h1>
+  <p class="text-muted">Кіммен сөйлескіңіз келеді?</p>
+</div>
+
+<form class="search-bar" method="GET">
+  <input type="text" name="q" value="{{ q }}" placeholder="Аты немесе email бойынша іздеу...">
+  <button type="submit" class="btn btn-outline">Іздеу</button>
+</form>
+
+<div class="inbox-list">
+  {% for u in users %}
+  <a href="{{ url_for('messages_chat', partner_id=u.id) }}" class="inbox-item">
+    <div class="inbox-avatar">{{ u.full_name[0] }}</div>
+    <div class="inbox-body">
+      <div class="inbox-top">
+        <strong>{{ u.full_name }}</strong>
+        <span class="badge badge-{{ u.role }}">{{ role_labels.get(u.role, u.role) }}</span>
+      </div>
+      <p class="inbox-preview text-muted">{{ u.email }}</p>
+    </div>
+  </a>
+  {% else %}
+  <p class="empty-msg">Пайдаланушы табылмады.</p>
+  {% endfor %}
+</div>
+
+<div class="mt-2">
+  <a href="{{ url_for('messages_inbox') }}" class="btn btn-outline">← Хабарламаларға</a>
+</div>
+{% endblock %}

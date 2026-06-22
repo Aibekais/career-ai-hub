@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 load_dotenv()
 
 from models import db, User, CareerProfile, Profession, CareerRecommendation
-from models import ConsultationRequest, WorkTask, PublishedMaterial, SystemLog, ChatMessage
+from models import ConsultationRequest, WorkTask, PublishedMaterial, SystemLog, ChatMessage, UserMessage
 from auth import role_required
 from ai_service import get_career_recommendation, is_gemini_configured, get_chat_response
 
@@ -591,6 +591,178 @@ def user_material_new():
         flash('Материал модерацияға жіберілді.', 'success')
         return redirect(url_for('user_dashboard'))
     return render_template('user/material_form.html')
+
+
+def _get_user_conversations():
+    """Ағымдағы user-дің барлық сөйлесу тізімі."""
+    uid = current_user.id
+    msgs = UserMessage.query.filter(
+        db.or_(UserMessage.sender_id == uid, UserMessage.receiver_id == uid)
+    ).order_by(UserMessage.created_at.desc()).all()
+
+    seen = set()
+    conversations = []
+    for m in msgs:
+        partner_id = m.receiver_id if m.sender_id == uid else m.sender_id
+        if partner_id in seen:
+            continue
+        seen.add(partner_id)
+        partner = User.query.get(partner_id)
+        if not partner:
+            continue
+        unread = UserMessage.query.filter_by(
+            sender_id=partner_id, receiver_id=uid, is_read=False
+        ).count()
+        conversations.append({
+            'partner': partner,
+            'last_message': m,
+            'unread': unread,
+        })
+    return conversations
+
+
+ROLE_LABELS = {
+    'admin': 'Әкімші',
+    'manager': 'Менеджер',
+    'employee': 'Қызметкер',
+    'moderator': 'Модератор',
+    'user': 'Клиент',
+}
+
+
+# ─── User-to-User Messages ────────────────────────────────────────────────────
+
+@app.route('/messages')
+@login_required
+def messages_inbox():
+    conversations = _get_user_conversations()
+    unread_total = UserMessage.query.filter_by(
+        receiver_id=current_user.id, is_read=False
+    ).count()
+    return render_template(
+        'messages/inbox.html',
+        conversations=conversations,
+        unread_total=unread_total,
+        role_labels=ROLE_LABELS,
+    )
+
+
+@app.route('/messages/users')
+@login_required
+def messages_users():
+    q = request.args.get('q', '').strip()
+    query = User.query.filter(User.id != current_user.id, User.is_active == True)
+    if q:
+        query = query.filter(db.or_(
+            User.full_name.ilike(f'%{q}%'),
+            User.email.ilike(f'%{q}%'),
+        ))
+    users = query.order_by(User.full_name).limit(50).all()
+    return render_template(
+        'messages/users.html',
+        users=users,
+        q=q,
+        role_labels=ROLE_LABELS,
+    )
+
+
+@app.route('/messages/<int:partner_id>')
+@login_required
+def messages_chat(partner_id):
+    if partner_id == current_user.id:
+        abort(400)
+    partner = User.query.get_or_404(partner_id)
+    if not partner.is_active:
+        abort(404)
+
+    messages = UserMessage.query.filter(
+        db.or_(
+            db.and_(UserMessage.sender_id == current_user.id, UserMessage.receiver_id == partner_id),
+            db.and_(UserMessage.sender_id == partner_id, UserMessage.receiver_id == current_user.id),
+        )
+    ).order_by(UserMessage.created_at).limit(100).all()
+
+    UserMessage.query.filter_by(
+        sender_id=partner_id, receiver_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+
+    return render_template(
+        'messages/chat.html',
+        partner=partner,
+        messages=messages,
+        role_labels=ROLE_LABELS,
+    )
+
+
+@app.route('/api/messages/<int:partner_id>', methods=['GET', 'POST'])
+@login_required
+def api_user_messages(partner_id):
+    if partner_id == current_user.id:
+        return jsonify({'success': False, 'error': 'Өзіңізге жібере алмайсыз'}), 400
+    partner = User.query.get_or_404(partner_id)
+
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        text = (data.get('message') or '').strip()
+        if not text:
+            return jsonify({'success': False, 'error': 'Хабарлама бос'}), 400
+        if len(text) > 2000:
+            return jsonify({'success': False, 'error': 'Хабарлама тым ұзын'}), 400
+
+        msg = UserMessage(
+            sender_id=current_user.id,
+            receiver_id=partner_id,
+            content=text,
+        )
+        db.session.add(msg)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': msg.id,
+                'content': msg.content,
+                'sender_id': msg.sender_id,
+                'created_at': msg.created_at.isoformat(),
+            }
+        })
+
+    after_id = request.args.get('after', 0, type=int)
+    query = UserMessage.query.filter(
+        db.or_(
+            db.and_(UserMessage.sender_id == current_user.id, UserMessage.receiver_id == partner_id),
+            db.and_(UserMessage.sender_id == partner_id, UserMessage.receiver_id == current_user.id),
+        )
+    )
+    if after_id:
+        query = query.filter(UserMessage.id > after_id)
+
+    messages = query.order_by(UserMessage.created_at).all()
+
+    UserMessage.query.filter_by(
+        sender_id=partner_id, receiver_id=current_user.id, is_read=False
+    ).update({'is_read': True})
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'data': [{
+            'id': m.id,
+            'content': m.content,
+            'sender_id': m.sender_id,
+            'is_mine': m.sender_id == current_user.id,
+            'created_at': m.created_at.isoformat(),
+        } for m in messages]
+    })
+
+
+@app.route('/api/messages/unread')
+@login_required
+def api_messages_unread():
+    count = UserMessage.query.filter_by(
+        receiver_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({'success': True, 'count': count})
 
 
 # ─── AI Chat ──────────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@
       <li><a href="{{ url_for('index') }}">Басты бет</a></li>
       <li><a href="{{ url_for('professions_list') }}">Мамандықтар</a></li>
       {% if current_user.is_authenticated %}
+        <li><a href="{{ url_for('messages_inbox') }}">📨 Хабарламалар</a></li>
         {% if current_user.role == 'admin' %}
           <li><a href="{{ url_for('admin_dashboard') }}">Әкімші панелі</a></li>
         {% elif current_user.role == 'manager' %}

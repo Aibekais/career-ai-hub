@@ -6,7 +6,8 @@
     <h3>Клиент</h3>
     <a href="{{ url_for('user_dashboard') }}" class="sidebar-link active">Басты</a>
     <a href="{{ url_for('profile') }}" class="sidebar-link">Профиль</a>
-    <a href="{{ url_for('ai_chat') }}" class="sidebar-link">💬 AI Чат</a>
+    <a href="{{ url_for('ai_chat') }}" class="sidebar-link">🤖 AI Чат</a>
+    <a href="{{ url_for('messages_inbox') }}" class="sidebar-link">📨 Хабарламалар</a>
     <a href="{{ url_for('recommend') }}" class="sidebar-link">AI ұсыныс</a>
     <a href="{{ url_for('user_recommendations') }}" class="sidebar-link">Менің ұсыныстарым</a>
     <a href="{{ url_for('request_consultation') }}" class="sidebar-link">Консультация</a>
@@ -17,7 +18,8 @@
     <h1>Сәлем, {{ current_user.full_name }}!</h1>
     <div class="hero-actions mb-2">
       <a href="{{ url_for('recommend') }}" class="btn btn-primary">🤖 AI мамандық ұсынысы</a>
-      <a href="{{ url_for('ai_chat') }}" class="btn btn-primary">💬 AI Чат</a>
+      <a href="{{ url_for('ai_chat') }}" class="btn btn-primary">🤖 AI Чат</a>
+      <a href="{{ url_for('messages_inbox') }}" class="btn btn-outline">📨 Хабарламалар</a>
       <a href="{{ url_for('request_consultation') }}" class="btn btn-outline">Консультация сұрау</a>
     </div>
     <div class="stats-grid">

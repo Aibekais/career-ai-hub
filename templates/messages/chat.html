@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Чат — {{ partner.full_name }}{% endblock %}
+{% block content %}
+<div class="user-chat-page">
+  <div class="user-chat-header">
+    <a href="{{ url_for('messages_inbox') }}" class="btn btn-outline btn-sm">← Артқа</a>
+    <div class="user-chat-partner">
+      <div class="inbox-avatar">{{ partner.full_name[0] }}</div>
+      <div>
+        <strong>{{ partner.full_name }}</strong>
+        <span class="badge badge-{{ partner.role }}">{{ role_labels.get(partner.role, partner.role) }}</span>
+        <p class="text-muted">{{ partner.email }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-box" id="chat-box">
+    {% for m in messages %}
+    <div class="chat-msg {% if m.sender_id == current_user.id %}chat-msg-user{% else %}chat-msg-assistant{% endif %}" data-id="{{ m.id }}">
+      <div class="chat-avatar">{% if m.sender_id == current_user.id %}👤{% else %}{{ partner.full_name[0] }}{% endif %}</div>
+      <div class="chat-bubble">
+        <p>{{ m.content }}</p>
+        <span class="chat-time">{{ m.created_at.strftime('%H:%M') }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <form class="chat-input-form" id="chat-form">
+    <input type="text" id="chat-input" placeholder="Хабарлама жазыңыз..." autocomplete="off" maxlength="2000">
+    <button type="submit" class="btn btn-primary">Жіберу</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function() {
+  const partnerId = {{ partner.id }};
+  const myId = {{ current_user.id }};
+  const box = document.getElementById('chat-box');
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  let lastId = 0;
+
+  box.querySelectorAll('.chat-msg').forEach(el => {
+    const id = parseInt(el.dataset.id || 0);
+    if (id > lastId) lastId = id;
+  });
+
+  function scrollBottom() {
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
+  function appendMessage(msg) {
+    const isMine = msg.sender_id === myId;
+    const div = document.createElement('div');
+    div.className = 'chat-msg ' + (isMine ? 'chat-msg-user' : 'chat-msg-assistant');
+    div.dataset.id = msg.id;
+    const time = new Date(msg.created_at).toLocaleTimeString('kk-KZ', {hour:'2-digit', minute:'2-digit'});
+    div.innerHTML = `
+      <div class="chat-avatar">${isMine ? '👤' : '{{ partner.full_name[0] }}'}</div>
+      <div class="chat-bubble"><p>${escapeHtml(msg.content)}</p><span class="chat-time">${time}</span></div>`;
+    box.appendChild(div);
+    if (msg.id > lastId) lastId = msg.id;
+    scrollBottom();
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+      const res = await fetch('/api/messages/' + partnerId, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: text}),
+      });
+      const json = await res.json();
+      if (json.success) appendMessage(json.data);
+    } catch (err) { console.error(err); }
+  });
+
+  async function poll() {
+    try {
+      const res = await fetch('/api/messages/' + partnerId + '?after=' + lastId);
+      const json = await res.json();
+      if (json.success && json.data.length) {
+        json.data.forEach(m => {
+          if (!box.querySelector('[data-id="' + m.id + '"]')) appendMessage(m);
+        });
+      }
+    } catch (err) { /* ignore */ }
+  }
+
+  setInterval(poll, 3000);
+  scrollBottom();
+})();
+</script>
+{% endblock %}
