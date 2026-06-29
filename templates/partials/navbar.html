@@ -8,6 +8,7 @@
     <ul class="nav-links">
       <li><a href="{{ url_for('index') }}">Басты бет</a></li>
       <li><a href="{{ url_for('professions_list') }}">Мамандықтар</a></li>
+      <li><a href="{{ url_for('media_page') }}">Бейне/Аудио</a></li>
       {% if current_user.is_authenticated %}
         <li><a href="{{ url_for('messages_inbox') }}">📨 Хабарламалар</a></li>
         {% if current_user.role == 'admin' %}

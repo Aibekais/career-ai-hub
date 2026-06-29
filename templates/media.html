@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Бейне және Аудио{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Бейне және Аудио</h1>
+  <p>CareerAI Hub жобасына арналған медиа материалдар</p>
+</div>
+
+<div class="media-grid">
+  <section class="card media-card">
+    <h2>🎬 Бейне</h2>
+    <p class="media-desc">Жоба презентациясы немесе демонстрациялық бейне.</p>
+    <div class="media-player-wrap">
+      <video controls preload="metadata" class="media-video">
+        <source src="{{ url_for('static', filename='media/video.mp4') }}" type="video/mp4">
+        Сіздің браузеріңіз бейне ойнатуды қолдамайды.
+      </video>
+    </div>
+  </section>
+
+  <section class="card media-card">
+    <h2>🎧 Аудио</h2>
+    <p class="media-desc">Жобаға арналған аудио материал.</p>
+    <div class="media-player-wrap media-audio-wrap">
+      <audio controls preload="metadata" class="media-audio">
+        <source src="{{ url_for('static', filename='media/audio.mp3') }}" type="audio/mpeg">
+        Сіздің браузеріңіз аудио ойнатуды қолдамайды.
+      </audio>
+    </div>
+  </section>
+</div>
+{% endblock %}

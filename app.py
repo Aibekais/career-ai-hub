@@ -136,6 +136,11 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/media')
+def media_page():
+    return render_template('media.html')
+
+
 @app.route('/professions')
 def professions_list():
     q = request.args.get('q', '').strip()
